@@ -6,6 +6,8 @@ import websockets
 import json
 import base64
 import logging
+import os
+from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from elevenlabs.client import ElevenLabs
 from typing import Dict, Set
@@ -13,6 +15,9 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from collections import defaultdict
+
+# Load environment variables
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -30,17 +35,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configuration
-OPENAI_API_KEY = "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"
-ELEVENLABS_API_KEY = "sk_275718c11e089981571f89a64f8cdca838ef018e54ffa162"
-ELEVENLABS_VOICE_ID = "G1QUjBCuRBbLbAmYlTgl"
+# Configuration from environment variables
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "G1QUjBCuRBbLbAmYlTgl")
+
+# Validate required environment variables
+if not OPENAI_API_KEY:
+    logger.error("❌ OPENAI_API_KEY environment variable is required")
+if not ELEVENLABS_API_KEY:
+    logger.error("❌ ELEVENLABS_API_KEY environment variable is required")
 
 # Initialize clients with error handling
 try:
-    openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
-    elevenlabs_client = ElevenLabs(api_key=ELEVENLABS_API_KEY)
-    SERVICES_AVAILABLE = True
-    logger.info("✅ AI services initialized successfully")
+    if OPENAI_API_KEY and ELEVENLABS_API_KEY:
+        openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+        elevenlabs_client = ElevenLabs(api_key=ELEVENLABS_API_KEY)
+        SERVICES_AVAILABLE = True
+        logger.info("✅ AI services initialized successfully")
+    else:
+        openai_client = None
+        elevenlabs_client = None
+        SERVICES_AVAILABLE = False
+        logger.error("❌ Missing required API keys in environment variables")
 except Exception as e:
     logger.error(f"❌ Failed to initialize AI services: {e}")
     openai_client = None
@@ -598,7 +615,12 @@ async def health_check():
             "✅ No-interruption audio streaming",
             "✅ Multi-language support (Arabic/English)",
             "✅ Performance monitoring"
-        ]
+        ],
+        "environment": {
+            "openai_key_configured": bool(OPENAI_API_KEY),
+            "elevenlabs_key_configured": bool(ELEVENLABS_API_KEY),
+            "voice_id": ELEVENLABS_VOICE_ID
+        }
     }
 
 # Root endpoint
@@ -634,9 +656,15 @@ if __name__ == "__main__":
     print("🔊 Audio streaming optimized")
     print("⚡ No-interruption conversation flow")
     
+    # Environment check
+    print("\n🔧 Environment check:")
+    print(f"   OPENAI_API_KEY: {'✅ Set' if OPENAI_API_KEY else '❌ Missing'}")
+    print(f"   ELEVENLABS_API_KEY: {'✅ Set' if ELEVENLABS_API_KEY else '❌ Missing'}")
+    print(f"   ELEVENLABS_VOICE_ID: {ELEVENLABS_VOICE_ID}")
+    
     if not SERVICES_AVAILABLE:
         print("⚠️  WARNING: Some AI services are not available!")
-        print("   Check your API keys and internet connection")
+        print("   Check your .env file and API keys")
     else:
         print("✅ All AI services initialized successfully")
     

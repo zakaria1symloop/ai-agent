@@ -3,7 +3,7 @@ services:
 - name: api
   source_dir: /
   github:
-    repo: your-username/your-repo-name
+    repo: zakaria1symloop/ai-agent
     branch: main
   run_command: uvicorn main:app --host 0.0.0.0 --port 8080
   environment_slug: python
@@ -14,8 +14,8 @@ services:
     http_path: /health
   envs:
   - key: OPENAI_API_KEY
-    value: "your-openai-key-here"
+    value: "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"
     type: SECRET
   - key: ELEVENLABS_API_KEY
-    value: "your-elevenlabs-key-here"
+    value: "sk_275718c11e089981571f89a64f8cdca838ef018e54ffa162"
     type: SECRET
