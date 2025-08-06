@@ -1,0 +1,21 @@
+name: ai-voice-assistant
+services:
+- name: api
+  source_dir: /
+  github:
+    repo: your-username/your-repo-name
+    branch: main
+  run_command: uvicorn main:app --host 0.0.0.0 --port 8080
+  environment_slug: python
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  http_port: 8080
+  health_check:
+    http_path: /health
+  envs:
+  - key: OPENAI_API_KEY
+    value: "your-openai-key-here"
+    type: SECRET
+  - key: ELEVENLABS_API_KEY
+    value: "your-elevenlabs-key-here"
+    type: SECRET
